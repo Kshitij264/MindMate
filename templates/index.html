@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mental Health Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <button id="theme-toggle" title="Toggle Theme">🌙</button>
+
+    <div class="main-container">
+  <div class="chat-left">
+    <div class="chat-container">
+      <div class="chat-header">
+        🧠 <strong>MindMate</strong> — Your Mental Health Companion
+      </div>
+      <div class="chat-box" id="chat-box"></div>
+
+      <form id="chat-form">
+        <div class="input-container">
+          <button type="button" id="emoji-btn">😊</button>
+          <input type="text" id="user-input" autocomplete="off" placeholder="Type your thoughts..." required>
+          <button type="submit">Send</button>
+          <button type="button" id="download-chat" title="Download chat">📄</button>
+        </div>
+        <div id="emoji-picker" class="emoji-picker" style="display: none;"></div>
+      </form>
+
+      <button id="scroll-btn" title="Scroll to bottom">⬇️</button>
+    </div>
+  </div>
+
+  <div class="chat-right">
+    <div class="graph-container">
+      <canvas id="moodChart"></canvas>
+    </div>
+
+    <div class="chat-history-section">
+  <h3>📜 Previous Chats</h3>
+  <div id="chat-history-content"></div>
+</div>
+
+<div class="email-button-container">
+  <form action="/send-chat-email" method="POST"
+        onsubmit="return confirm('Send this chat transcript to your email? 😊');">
+    <button class="email-btn" type="submit">📧 Email My Chat</button>
+  </form>
+</div>
+
+  </div>
+</div>
+
+    <script>
+    const form = document.getElementById("chat-form");
+    const input = document.getElementById("user-input");
+    const chatBox = document.getElementById("chat-box");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const message = input.value.trim();
+        if (!message) return;
+
+        appendMessage("You", message, "user");
+        input.value = "";
+
+        const botTyping = document.createElement("div");
+        botTyping.className = "message bot typing";
+        botTyping.innerHTML = `
+            <img src="/static/bot.jpg" class="avatar">
+            <div class="bubble typing-bubble">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>`;
+        chatBox.appendChild(botTyping);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        const response = await fetch("/chat", {
+            method: "POST",
+            body: new URLSearchParams({ message }),
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        });
+
+        const data = await response.json();
+
+        setTimeout(() => {
+            chatBox.removeChild(botTyping);
+            appendMessage("Bot", data.reply, "bot");
+            if (data.polarity !== undefined) {
+                updateMoodGraph(data.polarity);
+            }
+        }, 2000);
+    });
+
+    function appendMessage(sender, text, type) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${type}`;
+        const avatarSrc = type === "bot" ? "/static/bot.jpg" : "/static/user.jpg";
+
+        const timestamp = new Date().toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+
+        messageDiv.innerHTML = `
+            <img src="${avatarSrc}" class="avatar">
+            <div class="bubble">
+                ${text}
+                <div class="timestamp">${timestamp}</div>
+            </div>
+        `;
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        appendMessage("Bot", "Hi there! 👋 I'm <strong>MindMate</strong>, your mental health companion. How are you feeling today?", "bot");
+    });
+
+    const scrollBtn = document.getElementById("scroll-btn");
+    chatBox.addEventListener("scroll", () => {
+        const nearBottom = chatBox.scrollHeight - chatBox.scrollTop <= chatBox.clientHeight + 50;
+        scrollBtn.style.display = nearBottom ? "none" : "block";
+    });
+    scrollBtn.addEventListener("click", () => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+    const toggleBtn = document.getElementById("theme-toggle");
+    toggleBtn.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+        const isDark = document.body.classList.contains("dark");
+        toggleBtn.textContent = isDark ? "☀️" : "🌙";
+    });
+
+    const emojiBtn = document.getElementById("emoji-btn");
+    const emojiPicker = document.getElementById("emoji-picker");
+    const userInput = document.getElementById("user-input");
+
+    const emojis = ["😀", "😢", "😡", "❤️", "👍", "🙏", "😞", "🤯", "😌", "🎉", "😔", "💙"];
+    emojiBtn.addEventListener("click", () => {
+        emojiPicker.style.display = emojiPicker.style.display === "none" ? "flex" : "none";
+    });
+
+    emojis.forEach(emoji => {
+        const span = document.createElement("span");
+        span.textContent = emoji;
+        span.addEventListener("click", () => {
+            userInput.value += emoji;
+            emojiPicker.style.display = "none";
+            userInput.focus();
+        });
+        emojiPicker.appendChild(span);
+    });
+
+    const suggestions = [
+        "I'm feeling...",
+        "Nothing seems right today...",
+        "Can we talk?",
+        "I'm anxious about...",
+        "I'm trying my best but...",
+        "I just need someone to listen.",
+        "I'm overwhelmed today.",
+        "I’m feeling okay, just tired.",
+    ];
+
+    let suggestionIndex = 0;
+    setInterval(() => {
+        if (userInput.value === "") {
+            userInput.setAttribute("placeholder", suggestions[suggestionIndex]);
+            suggestionIndex = (suggestionIndex + 1) % suggestions.length;
+        }
+    }, 4000);
+
+    document.getElementById("download-chat").addEventListener("click", () => {
+        const messages = document.querySelectorAll(".message");
+        let chatContent = "";
+        messages.forEach(msg => {
+            const type = msg.classList.contains("bot") ? "Bot" : "You";
+            const text = msg.querySelector(".bubble").textContent.trim();
+            chatContent += `${type}: ${text}\n\n`;
+        });
+
+        const blob = new Blob([chatContent], { type: "text/plain" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "chat_summary.txt";
+        a.click();
+        window.URL.revokeObjectURL(url);
+    });
+
+    // Mood chart
+    const moodData = {
+        labels: [],
+        datasets: [{
+            label: "Mood Polarity",
+            data: [],
+            fill: true,
+            borderColor: "rgba(75, 192, 192, 1)",
+            backgroundColor: "rgba(75, 192, 192, 0.2)",
+            tension: 0.3
+        }]
+    };
+
+    const moodChart = new Chart(document.getElementById("moodChart"), {
+        type: "line",
+        data: moodData,
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    suggestedMin: -1,
+                    suggestedMax: 1
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    function updateMoodGraph(polarity) {
+        const index = moodData.labels.length + 1;
+        moodData.labels.push("Msg " + index);
+        moodData.datasets[0].data.push(polarity);
+        moodChart.update();
+    }
+    function loadChatHistory() {
+  fetch("/chat-history")
+    .then(response => response.json())
+    .then(data => {
+      const historyDiv = document.getElementById("chat-history-content");
+      if (data.length === 0) {
+        historyDiv.innerHTML = "<p>No previous chats found.</p>";
+        return;
+      }
+
+      historyDiv.innerHTML = "";
+      data.forEach(item => {
+        const block = document.createElement("div");
+        block.classList.add("history-block");
+        block.innerHTML = `
+          <p><strong>You:</strong> ${item.message}</p>
+          <p><strong>MindMate:</strong> ${item.response}</p>
+          <hr>
+        `;
+        historyDiv.appendChild(block);
+      });
+    });
+}
+
+window.addEventListener("load", loadChatHistory);
+document.getElementById("email-chat").addEventListener("click", () => {
+  fetch("/send-chat-email", {
+    method: "POST"
+  }).then(res => res.text())
+    .then(alert)
+    .catch(err => alert("Failed to send email"));
+});
+    </script>
+    
+</body>
+</html>

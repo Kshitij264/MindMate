@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Menu - MindMate</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="menu-body">
+  <div class="menu-container">
+    <a href="{{ url_for('home') }}" class="menu-box box-chat">
+      <div class="box-label">Chat with MindMate</div>
+    </a>
+    <a href="#" class="menu-box box-facts">
+      <div class="box-label">Mental Health Facts</div>
+    </a>
+    <a href="#" class="menu-box box-activities">
+      <div class="box-label">Guided Activities</div>
+    </a>
+    <a href="#" class="menu-box box-journal">
+      <div class="box-label">Journal & Mood Log</div>
+    </a>
+  </div>
+      <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+  <div class="greeting-popup-overlay" id="greeting-popup">
+  <div class="greeting-popup-box">
+    <button class="close-greeting-btn" onclick="closeGreeting()">×</button>
+    <h2>Hi {{ user }}, welcome back! 🌿</h2>
+    <p>What would you like to do today?</p>
+  </div>
+</div>
+<script>
+  function closeGreeting() {
+    document.getElementById("greeting-popup").style.display = "none";
+  }
+
+  // Automatically show popup on page load
+  window.onload = function () {
+    document.getElementById("greeting-popup").style.display = "flex";
+  };
+</script>
+{% if session.get('show_greeting') %}
+<div class="popup-overlay" id="greeting-popup">
+  <div class="popup-box">
+    <button class="close-btn" onclick="closeGreeting()">×</button>
+    <h2>Hi {{ session['user_name'] }} 👋</h2>
+    <p>What would you like to do today?</p>
+  </div>
+</div>
+<script>
+  function closeGreeting() {
+    document.getElementById("greeting-popup").style.display = "none";
+    fetch("/dismiss-greeting"); // Tell server to not show again this session
+  }
+</script>
+{% endif %}
+</body>
+</html>
