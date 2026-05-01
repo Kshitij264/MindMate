@@ -253,8 +253,7 @@ if (!isNaN(polarity)) {
 }
 
 window.addEventListener("load", loadChatHistory);
-document.getElementById("emailForm").addEventListener("submit", async function(e) {
-    e.preventDefault();
+document.getElementById("emailBtn").addEventListener("click", async () => {
 
     if (!confirm("Send this chat transcript to your email? 😊")) return;
 

@@ -9,7 +9,21 @@ body {
   align-items: flex-start;
   padding: 40px 20px;   /* 🔥 important */
 }
+#user-input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 25px;   /* 🔥 THIS makes it rounded */
+  border: 1px solid #ccc;
+  outline: none;
+  font-size: 14px;
+  background: #f9f9f9;
+  transition: 0.3s;
+}
 
+#user-input:focus {
+  border-color: #6c63ff;
+  box-shadow: 0 0 5px rgba(108, 99, 255, 0.3);
+}
 .main-container {
     display: flex;
     flex-direction: row;
@@ -52,22 +66,19 @@ body {
     scroll-behavior: smooth;
 }
 
-form {
+.chat-container form {
     display: flex;
     padding: 10px;
     border-top: 1px solid #ddd;
     background: #fff;
     flex-shrink: 0;
 }
-
-form input {
-    flex: 1;
-    padding: 12px;
-    border-radius: 25px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-    outline: none;
+.auth-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
+
 
 form button {
     margin-left: 8px;
@@ -252,9 +263,10 @@ body.dark form button {
 }
 
 .input-container {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
 }
 
 #emoji-btn {
@@ -333,37 +345,44 @@ body.dark form button {
 .welcome-container {
     text-align: center;
     color: white;
-    animation: slideUp 1.2s ease forwards;
-    opacity: 0;
-    transform: translateY(100px);
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.4); /* subtle backdrop for readability */
-    border-radius: 12px;
+
+    padding: 30px 40px;
+    border-radius: 20px;
+
+    max-width: 850px;   /* 🔥 KEY FIX */
+    width: 90%;
+
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
 }
 
 .welcome-message {
-    font-size: 4em; /* Increased font size */
-    font-weight: bold;
-    margin-bottom: 30px;
-    line-height: 1.1;
+    font-size: 2.8rem;   /* ↓ reduced */
+    font-weight: 600;
+    line-height: 1.2;
+    max-width: 800px;
+    margin: 0 auto 20px;
 }
 
 .get-started-btn {
-    padding: 14px 28px;
-    font-size: 20px;
-    background-color: #fff;
-    color: #3f51b5;
-    border: none;
+    padding: 14px 36px;
+    font-size: 18px;
+
+    background: linear-gradient(135deg, #6c63ff, #8b7bff);
+    color: white;
+
     border-radius: 30px;
-    text-decoration: none;
     font-weight: 600;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-    transition: background 0.3s ease, transform 0.2s ease;
+
+    box-shadow: 0 12px 30px rgba(108,99,255,0.5);
+    transition: all 0.3s ease;
 }
 
 .get-started-btn:hover {
-    background-color: #f0f0f0;
-    transform: scale(1.05);
+    transform: translateY(-3px) scale(1.05);
 }
 
 /* Slide up animation */
@@ -418,8 +437,12 @@ body.dark form button {
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(0,0,0,0.1);
   opacity: 0;
+  transition: all 0.3s ease;
 }
-
+.menu-box:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
 /* Individual box positioning */
 .box-chat {
   top: 0;
@@ -562,11 +585,11 @@ body.dark form button {
 }
 
 .auth-container input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+  width: 100%;
+  padding: 12px;
+  padding-right: 45px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
 }
 
 .auth-container button {
@@ -616,6 +639,7 @@ body.dark form button {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  animation: fadeInUp 0.4s ease;
 }
 
 /* Close Button */
@@ -738,7 +762,7 @@ body.dark form button {
 @keyframes fadeInUp {
   0% {
     opacity: 0;
-    transform: translateY(40px);
+    transform: translateY(20px);
   }
   100% {
     opacity: 1;
@@ -746,22 +770,21 @@ body.dark form button {
   }
 }
 .logout-btn {
-  position: fixed;
+  position: absolute;
   top: 20px;
-  right: 30px;
-  background-color: #f44336;
+  right: 20px;
+  background: linear-gradient(135deg, #ff6b6b, #ff4b4b);
   color: white;
   padding: 10px 18px;
-  border-radius: 8px;
+  border-radius: 20px;
   text-decoration: none;
   font-weight: bold;
-  z-index: 1001;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  transition: background 0.3s;
+  transition: 0.3s;
 }
 
 .logout-btn:hover {
-  background-color: #d73833;
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 .chat-history-section {
   margin-top: 30px;
@@ -1473,4 +1496,47 @@ canvas {
 
 .toast.error {
   border-left: 5px solid #f44336;
+}
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding: 12px 45px 12px 12px;
+  border-radius: 8px;
+}
+
+.password-wrapper .toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  z-index: 100;
+  background: white; /* 🔥 forces visibility */
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.toggle-password svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+.toggle-password:hover {
+  opacity: 1;
+}
+.eye-icon {
+  width: 18px;
+  height: 18px;
+  stroke: #666;
+  stroke-width: 2;
+  fill: none;
+  transition: 0.2s;
+}
+
+.toggle-password:hover .eye-icon {
+  stroke: #6c63ff;
 }

@@ -22,36 +22,24 @@
     </a>
   </div>
       <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
-  <div class="greeting-popup-overlay" id="greeting-popup">
-  <div class="greeting-popup-box">
-    <button class="close-greeting-btn" onclick="closeGreeting()">×</button>
-    <h2>Hi {{ user }}, welcome back! 🌿</h2>
-    <p>What would you like to do today?</p>
-  </div>
-</div>
-<script>
-  function closeGreeting() {
-    document.getElementById("greeting-popup").style.display = "none";
-  }
-
-  // Automatically show popup on page load
-  window.onload = function () {
-    document.getElementById("greeting-popup").style.display = "flex";
-  };
-</script>
+  
 {% if session.get('show_greeting') %}
 <div class="popup-overlay" id="greeting-popup">
   <div class="popup-box">
     <button class="close-btn" onclick="closeGreeting()">×</button>
-    <h2>Hi {{ session['user_name'] }} 👋</h2>
+    <h2>{{ session['greeting_text'] }}, {{ session['user_name'] }} 👋</h2>
     <p>What would you like to do today?</p>
   </div>
 </div>
 <script>
   function closeGreeting() {
     document.getElementById("greeting-popup").style.display = "none";
-    fetch("/dismiss-greeting"); // Tell server to not show again this session
+    fetch("/dismiss-greeting");
   }
+  setTimeout(() => {
+  closeGreeting();
+}, 10000);
+  document.getElementById("greeting-popup").style.display = "flex";
 </script>
 {% endif %}
 </body>

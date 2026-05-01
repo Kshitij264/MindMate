@@ -118,6 +118,21 @@ def register():
         session['email'] = email
         session['user_id'] = user_id
         session['user_name'] = name
+        session['show_greeting'] = True
+
+        from datetime import datetime
+
+        hour = datetime.now().hour
+
+        if hour < 12:
+            greeting = "Good Morning"
+        elif hour < 18:
+            greeting = "Good Afternoon"
+        else:
+            greeting = "Good Evening"
+
+        session['greeting_text'] = greeting
+
         return redirect(url_for('menu'))
     else:
         return "User already exists. Try logging in.", 400
@@ -135,6 +150,21 @@ def login():
         session['user_id'] = user_id
         session['user_name'] = name
         session.permanent = True
+        session['show_greeting'] = True
+
+        from datetime import datetime
+
+        hour = datetime.now().hour
+
+        if hour < 12:
+            greeting = "Good Morning"
+        elif hour < 18:
+            greeting = "Good Afternoon"
+        else:
+            greeting = "Good Evening"
+
+        session['greeting_text'] = greeting
+
         return redirect(url_for('menu'))
     else:
         return "Invalid credentials", 401
