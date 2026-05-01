@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Guided Activities</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+  margin: 0;
+  height: 92vh;
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* 🔥 KEY FIX */
+
+  padding-top: 10px; /* small breathing space */
+  
+  background: url("/static/menubg.jpg") no-repeat center center fixed;
+  background-size: cover;
+}
+
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: #333;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      text-decoration: none;
+    }
+
+    /* SCREEN CONTROL */
+    .screen {
+  width: 90%;
+  max-width: 1000px;
+  height: 85vh;
+
+  display: none;
+  flex-direction: column;
+  justify-content: flex-start;
+
+  padding-top: 0;
+  gap: 10px; /* 🔥 adds space between heading & grid */
+}
+#ambienceScreen {
+  padding-bottom: 10px; /* 🔥 keeps last row visible */
+}
+    .active {
+      display: flex;
+    }
+
+    /* AMBIENCE GRID */
+    .ambience-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px; /* 🔥 proper spacing */
+  height: auto; /* 🔥 important */
+}
+
+    .ambience-card {
+  cursor: pointer;
+  border-radius: 20px;
+  overflow: hidden;
+  transition: transform 0.3s;
+  background: white;
+  text-align: center;
+
+  height: 100%;
+  max-height: 280px; /* 🔥 bigger but safe */
+
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+    .ambience-card:hover {
+      transform: scale(1.05);
+    }
+
+    .ambience-card img {
+      width: 100%;
+      height: 80%;
+      object-fit: cover;
+    }
+
+    .ambience-card p {
+      padding: 0px;
+      font-weight: bold;
+    }
+
+    /* ACTIVITIES */
+    .guided-container {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(20px);
+  padding: 40px;
+  border-radius: 25px;
+  width: 70%;
+  max-width: 900px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
+
+    .activity-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .activity-card {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+    }
+
+    button {
+      padding: 8px 15px;
+      border: none;
+      background: #6c63ff;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .breathing-circle {
+      width: 80px;
+      height: 80px;
+      background: #6c63ff;
+      border-radius: 50%;
+      margin: 10px auto;
+      transition: 3s;
+    }
+    .main-activity {
+  background: rgba(255,255,255,0.25);
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.activity-switch {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.activity-switch button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 18px;
+  background: #6c63ff;
+}
+  </style>
+</head>
+
+<body>
+
+<a href="{{ url_for('menu') }}" class="back-btn">← Back</a>
+
+<!-- SCREEN 1 -->
+<div id="ambienceScreen" class="screen active">
+  <h1 style="color:white; margin: 5px 0;">🧘 Guided Activities</h1>
+<h3 style="color:white; margin: 5px 0 10px;">🌿 Choose Your Ambience</h3>
+
+  <div class="ambience-grid">
+
+    <div class="ambience-card" onclick="selectAmbience('mountain')">
+      <img src="/static/mountain.jpg">
+      <p>Mountains</p>
+    </div>
+
+    <div class="ambience-card" onclick="selectAmbience('beach')">
+      <img src="/static/beach.jpg">
+      <p>Beach</p>
+    </div>
+
+    <div class="ambience-card" onclick="selectAmbience('garden')">
+      <img src="/static/garden.jpg">
+      <p>Garden</p>
+    </div>
+
+    <div class="ambience-card" onclick="selectAmbience('rain')">
+      <img src="/static/rain.jpg">
+      <p>Rain</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- SCREEN 2 -->
+<div id="activityScreen" class="screen">
+
+  <div class="guided-container">
+    <!-- Top Controls -->
+<div class="top-controls">
+
+  <button class="glass-btn primary" onclick="goBackToAmbience()">
+    🔄 Change Ambience
+  </button>
+
+  <div class="sound-controls glass-box">
+    <span class="icon">🔊</span>
+
+    <input type="range" min="0" max="1" step="0.1" value="0.5" id="volumeControl">
+
+    <button class="glass-btn small" onclick="toggleMute(this)">
+      🔇
+    </button>
+  </div>
+
+</div>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <p id="statsText">Sessions: 0 | Focus Time: 0 min</p>
+</div>
+    <h1>🧘 Guided Activities</h1>
+
+    <div class="main-activity" id="mainActivity">
+
+  <h2>🌬 Breathing Exercise</h2>
+  <div class="breathing-circle" id="breathingCircle"></div>
+  <p id="breathText">Click start to begin</p>
+  <button onclick="startBreathing()">Start</button>
+
+</div>
+
+<div class="activity-switch">
+
+  <button onclick="showActivity('breathing')">🌬</button>
+  <button onclick="showActivity('gratitude')">🙏</button>
+  <button onclick="showActivity('relax')">🧠</button>
+  <button onclick="showActivity('focus')">⏳</button>
+
+</div>
+  </div>
+
+</div>
+
+<audio id="ambienceSound" loop></audio>
+<div id="relaxOverlay" class="relax-overlay" style="display:none;">
+  <div class="relax-box">
+    <div id="relaxCircle" class="relax-circle"></div>
+    <h2 id="relaxText">Inhale</h2>
+    <p id="relaxTimer">30</p>
+    <button onclick="stopRelax()">Exit</button>
+  </div>
+</div>
+<script>
+  let sessionCount = 0;
+let focusMinutes = 0;
+let isMuted = false;
+let focusInterval = null;
+let focusTime = 1500;
+function selectAmbience(type) {
+
+  const audio = document.getElementById("ambienceSound");
+
+  document.getElementById("ambienceScreen").classList.remove("active");
+  document.getElementById("activityScreen").classList.add("active");
+
+  if (type === "mountain") {
+    document.body.style.backgroundImage = "url('/static/mountain.jpg')";
+    audio.src = "/static/mountain.mp3";
+  }
+  else if (type === "beach") {
+    document.body.style.backgroundImage = "url('/static/beach.jpg')";
+    audio.src = "/static/beach.mp3";
+  }
+  else if (type === "garden") {
+    document.body.style.backgroundImage = "url('/static/garden.jpg')";
+    audio.src = "/static/garden.mp3";
+  }
+  else if (type === "rain") {
+    document.body.style.backgroundImage = "url('/static/rain.jpg')";
+    audio.src = "/static/rain.mp3";
+  }
+
+  document.body.style.backgroundSize = "cover";
+  document.body.style.backgroundPosition = "center";
+  audio.volume = 0.5;
+  audio.loop = true;
+  audio.play().catch(() => {
+  console.log("User interaction required for audio");
+});
+  localStorage.setItem("ambience", type);
+}
+
+/* breathing */
+function startBreathing() {
+  const text = document.getElementById("breathText");
+  const circle = document.getElementById("breathingCircle");
+
+  let steps = [
+    { text: "Inhale (4s)", scale: 1.5, time: 4000 },
+    { text: "Hold (4s)", scale: 1.5, time: 4000 },
+    { text: "Exhale (4s)", scale: 1, time: 4000 }
+  ];
+
+  let i = 0;
+
+  function runStep() {
+    text.innerText = steps[i].text;
+    circle.style.transform = `scale(${steps[i].scale})`;
+
+    setTimeout(() => {
+      i = (i + 1) % steps.length;
+      runStep();
+    }, steps[i].time);
+  }
+  sessionCount++;
+updateStats();
+  runStep();
+}
+
+/* gratitude */
+let gratitudeList = [];
+
+function startGratitude() {
+  const prompts = [
+    "What made you smile today?",
+    "Write 3 good things about your day",
+    "Who are you grateful for today?",
+    "What is something small you appreciated today?"
+  ];
+
+  const random = prompts[Math.floor(Math.random() * prompts.length)];
+
+  const promptEl = document.getElementById("gratitudePrompt");
+  const input = document.getElementById("gratitudeInput");
+
+  promptEl.innerText = "";
+  setTimeout(() => {
+    promptEl.innerText = random;
+  }, 200);
+
+  input.style.display = "block";
+  document.getElementById("saveBtn").style.display = "inline-block";
+  document.getElementById("startBtn").style.display = "none";
+}
+
+function saveGratitude() {
+  const input = document.getElementById("gratitudeInput");
+  const status = document.getElementById("gratitudeStatus");
+
+  if (input.value.trim() === "") {
+    status.innerText = "Write something first 🙂";
+    status.style.color = "#ffcc70";
+    return;
+  }
+
+  fetch('/save_gratitude', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      text: input.value
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    status.innerHTML = "✨ <span class='success-text'>Saved! Take a deep breath...</span>";
+
+    input.value = "";
+
+    loadGratitude(); // 🔥 refresh history
+
+    setTimeout(() => {
+      input.style.display = "none";
+      document.getElementById("saveBtn").style.display = "none";
+      document.getElementById("startBtn").style.display = "inline-block";
+      document.getElementById("gratitudePrompt").innerText = "Click start to begin";
+      status.innerText = "";
+    }, 2000);
+  });
+}
+
+function loadGratitude() {
+  fetch('/get_gratitude')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById("gratitudeHistory");
+      container.innerHTML = "";
+
+      data.forEach(entry => {
+        const div = document.createElement("div");
+        div.className = "history-item";
+
+        div.innerHTML = `
+          <p>${entry.text}</p>
+          <span>${entry.time}</span>
+        `;
+
+        container.appendChild(div);
+      });
+    });
+}
+
+function updateHistory() {
+  const container = document.getElementById("gratitudeHistory");
+  container.innerHTML = "";
+
+  gratitudeList.slice(0, 3).forEach(entry => {
+    const div = document.createElement("div");
+    div.className = "history-item";
+
+    div.innerHTML = `
+      <p>${entry.text}</p>
+      <span>${entry.time}</span>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+/* relax */
+let relaxInterval;
+let breathingInterval;
+
+function startRelax() {
+  sessionCount++;
+  updateStats();
+  document.getElementById("relaxOverlay").style.display = "flex";
+
+  const circle = document.getElementById("relaxCircle");
+  const text = document.getElementById("relaxText");
+  const timer = document.getElementById("relaxTimer");
+
+  let time = 30;
+  let phase = 0;
+
+  // Breathing cycle
+  breathingInterval = setInterval(() => {
+    if (phase === 0) {
+      text.innerText = "Inhale";
+      circle.style.transform = "scale(1.5)";
+    } else if (phase === 1) {
+      text.innerText = "Hold";
+    } else {
+      text.innerText = "Exhale";
+      circle.style.transform = "scale(1)";
+    }
+    phase = (phase + 1) % 3;
+  }, 4000);
+
+  // Timer
+  relaxInterval = setInterval(() => {
+    time--;
+    timer.innerText = time;
+
+    if (time <= 0) {
+      stopRelax();
+    }
+  }, 1000);
+}
+
+function stopRelax() {
+  document.getElementById("relaxOverlay").style.display = "none";
+  clearInterval(relaxInterval);
+  clearInterval(breathingInterval);
+}
+
+/* timer */
+function startTimer() {
+  const display = document.getElementById("timerText");
+
+  if (focusInterval) return;
+
+  focusInterval = setInterval(() => {
+    let min = Math.floor(focusTime / 60);
+    let sec = focusTime % 60;
+
+    display.innerText = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+
+    focusTime--;
+
+    if (focusTime < 0) {
+      clearInterval(focusInterval);
+      focusInterval = null;
+      display.innerText = "Done! 🎉";
+
+      focusMinutes += 25;
+      updateStats();
+
+      alert("Great job! Focus session completed 💪");
+    }
+  }, 1000);
+}
+function showActivity(type) {
+
+  const container = document.getElementById("mainActivity");
+
+  if (type === "breathing") {
+    container.innerHTML = `
+      <h2>🌬 Breathing Exercise</h2>
+      <div class="breathing-circle" id="breathingCircle"></div>
+      <p id="breathText">Click start to begin</p>
+      <button onclick="startBreathing()">Start</button>
+    `;
+  }
+
+  if (type === "gratitude") {
+    container.innerHTML = `
+      <h2>🙏 Gratitude</h2>
+      <div id="gratitudeBox">
+      <p id="streakText"></p>
+  <p id="gratitudePrompt">Click start to begin</p>
+
+  <textarea id="gratitudeInput" placeholder="Write your thoughts here..." style="display:none;"></textarea>
+
+  <div class="gratitude-actions">
+    <button onclick="startGratitude()" id="startBtn">Start</button>
+    <button onclick="saveGratitude()" id="saveBtn" style="display:none;">Save</button>
+  </div>
+
+  <p id="gratitudeStatus"></p>
+
+  <div id="gratitudeHistory" class="gratitude-history"></div>
+
+</div>
+    `;
+  }
+
+  if (type === "relax") {
+    container.innerHTML = `
+      <h2>🧠 Relax</h2>
+      <p>Close your eyes and breathe slowly</p>
+      <button onclick="startRelax()">Start</button>
+    `;
+  }
+
+  if (type === "focus") {
+    container.innerHTML = `
+      <h2>⏳ Focus Timer</h2>
+      <p id="timerText">25:00</p>
+      <button onclick="startTimer()">Start</button>
+<button onclick="pauseTimer()">Pause</button>
+    `;
+  }
+}
+function loadStreak() {
+  fetch('/get_streak')
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("streakText").innerText =
+        "🔥 Streak: " + data.streak + " days";
+    });
+}
+document.getElementById("volumeControl").addEventListener("input", function () {
+  const audio = document.getElementById("ambienceSound");
+  audio.volume = this.value;
+});
+
+function toggleMute(btn) {
+  const audio = document.getElementById("ambienceSound");
+
+  isMuted = !isMuted;
+  audio.muted = isMuted;
+
+  btn.innerText = isMuted ? "🔊" : "🔇";
+}
+function restoreSession() {
+  const saved = localStorage.getItem("ambience");
+
+  if (saved) {
+    selectAmbience(saved);
+  }
+}
+function goBackToAmbience() {
+  const audio = document.getElementById("ambienceSound");
+
+  audio.pause();
+  audio.currentTime = 0;
+
+  document.getElementById("activityScreen").classList.remove("active");
+  document.getElementById("ambienceScreen").classList.add("active");
+
+  document.body.style.background = "url('/static/menubg.jpg') no-repeat center center fixed";
+document.body.style.backgroundSize = "cover";
+
+  localStorage.removeItem("ambience");
+}
+function updateStats() {
+  document.getElementById("statsText").innerText =
+    `Sessions: ${sessionCount} | Focus Time: ${focusMinutes} min`;
+}
+function pauseTimer() {
+  clearInterval(focusInterval);
+  focusInterval = null;
+}
+window.onload = () => {
+  loadGratitude();
+  loadStreak();
+  restoreSession();
+};
+</script>
+
+</body>
+</html>

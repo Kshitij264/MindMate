@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Journal & Mood Log</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+  margin: 0;
+  overflow: hidden;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+   background: url("/static/menubg.jpg") no-repeat center center fixed;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.main-container {
+  width: 100%;
+  max-width: 1200px;
+  position: relative;
+  display: flex;
+  gap: 20px;
+}
+
+    .container {
+  width: 90%;
+  height: 90vh; /* 🔥 FIXED HEIGHT */
+  max-width: 1200px;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(20px);
+  padding: 20px;
+  border-radius: 25px;
+  color: white;
+  display: flex;
+  gap: 20px;
+}
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      border-radius: 10px;
+      padding: 10px;
+      border: none;
+      margin-top: 10px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 8px 15px;
+      border: none;
+      background: #6c63ff;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .mood-bar {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 20px;
+    }
+
+    .mood {
+      font-size: 28px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .mood:hover {
+      transform: scale(1.3);
+    }
+
+    .history-box {
+  margin-top: 10px;
+  flex: 1; /* 🔥 takes remaining space */
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+    .entry {
+      background: rgba(255,255,255,0.2);
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .ai-box {
+  background: rgba(255,255,255,0.15);
+  padding: 15px;
+  border-radius: 15px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ai-section p {
+  margin: 6px 0;
+}
+
+.typing-text {
+  margin: 0;
+  line-height: 1.3;
+  font-style: italic;
+  opacity: 0.9;
+}
+.journal-left {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh; /* 🔥 keeps everything above taskbar */
+}
+.journal-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  max-height: 80vh;
+}
+.graph-container {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.12);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.graph-container h3 {
+  margin: 0 0 6px 0; /* 🔥 tight spacing below heading */
+}
+.insight-box {
+  margin-top: 4px;
+  max-height: 90px; /* slightly controlled */
+  overflow-y: auto;
+
+  display: flex;
+  align-items: center; /* 🔥 centers text vertically */
+}
+/* 🎯 Balanced Layout */
+.graph-container:nth-child(1) {
+  flex: 0.9;
+}
+
+.graph-container:nth-child(2) {
+  flex: 0.7;
+}
+
+.graph-container:nth-child(3) {
+  flex: 1.2;
+}
+.graph-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+}
+.graph-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: linear-gradient(
+    120deg,
+    rgba(255,255,255,0.15),
+    rgba(255,255,255,0.02)
+  );
+  pointer-events: none;
+}
+button {
+  margin-top: 10px;
+  padding: 10px 15px;
+
+  background: linear-gradient(135deg, #6c63ff, #5a52d6);
+  
+  border-radius: 10px;
+  font-weight: 500;
+
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108,99,255,0.4);
+}
+.entry {
+  background: rgba(255,255,255,0.2);
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+
+  transition: transform 0.2s ease;
+}
+
+.entry:hover {
+  transform: scale(1.01);
+}
+.back-btn {
+  position: fixed; /* 🔥 KEY CHANGE */
+  top: 20px;
+  left: 20px;
+  z-index: 9999;
+
+  padding: 8px 14px;
+  border: none;
+  border-radius: 10px;
+
+  background: rgba(0,0,0,0.5); /* 🔥 match facts page look */
+  color: white;
+  font-weight: 500;
+
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: rgba(0,0,0,0.7);
+  transform: translateY(-1px);
+}
+  </style>
+</head>
+
+<body>
+<!-- 🔙 Back Button -->
+  <button class="back-btn" onclick="goBack()">← Back</button>
+<div class="main-container">
+
+  <!-- LEFT SIDE -->
+  <div class="journal-left glass-card">
+
+  <h2>📝 Journal</h2>
+
+  <textarea id="journalText" placeholder="Write your thoughts..."></textarea>
+  <button onclick="saveJournal()">Save Entry</button>
+<p id="saveStatus"></p>
+
+  <h2>😊 Mood</h2>
+
+  <div class="mood">
+  <div class="mood-options">
+    <span onclick="selectMood(this, 'sad')">😢</span>
+    <span onclick="selectMood(this, 'neutral')">😐</span>
+    <span onclick="selectMood(this, 'happy')">🙂</span>
+    <span onclick="selectMood(this, 'excited')">😄</span>
+  </div>
+</div>
+  <h3>📜 History</h3>
+<div id="history" class="history-box"></div>
+</div>
+<!-- RIGHT SIDE -->
+<div class="journal-right">
+
+  <div class="graph-container">
+    <h3>📊 Mood This Week</h3>
+    <canvas id="moodChart"></canvas>
+  </div>
+
+  <div class="graph-container">
+    <h3>🧠 Smart Insight</h3>
+<div class="insight-box">
+  <p id="moodInsight" class="typing-text"></p>
+</div>
+  </div>
+
+  <div class="graph-container">
+    <h3>🤖 AI Analysis</h3>
+    <div id="aiSummary" class="ai-box">
+    <p>Loading analysis...</p>
+</div>
+  </div>
+
+</div>
+
+<script>
+function goBack() {
+  window.location.href = "/menu";
+}
+function saveMood(mood) {
+  fetch('/save_mood', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mood })
+  });
+}
+
+function loadJournal() {
+  fetch('/get_journal')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById("history");
+      container.innerHTML = "";
+
+      const moodEmoji = {
+        "sad": "😢",
+        "neutral": "😐",
+        "happy": "🙂",
+        "excited": "😄"
+      };
+
+      data.forEach(entry => {
+        const div = document.createElement("div");
+        div.className = "entry";
+
+        div.innerHTML = `
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    
+    <div style="display:flex; align-items:center; gap:10px;">
+      
+      <span style="font-size:22px;">
+        ${moodEmoji[entry.mood] || ""}
+      </span>
+
+      <div>
+        <p>${entry.text}</p>
+        <span>${entry.time}</span>
+      </div>
+
+    </div>
+
+    <button onclick="deleteEntry(${entry.id})" class="delete-btn">🗑</button>
+
+  </div>
+`;
+        container.appendChild(div);
+      });
+    });
+}
+
+let selectedMood = "";
+
+function selectMood(el, mood) {
+  selectedMood = mood;
+
+  document.querySelectorAll(".mood-options span").forEach(e => {
+    e.classList.remove("mood-selected");
+  });
+
+  el.classList.add("mood-selected");
+}
+function saveJournal() {
+  const text = document.querySelector("textarea").value;
+  const status = document.getElementById("saveStatus");
+
+  if (text.trim() === "") {
+    status.innerText = "Write something first 🙂";
+    status.style.color = "#ffcc70";
+    return;
+  }
+
+  fetch('/save_journal', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      text: text,
+      mood: selectedMood
+    })
+  })
+  .then(res => res.json())
+  .then(() => {
+    status.innerText = "✨ Saved successfully!";
+    status.style.color = "#7CFFB2";
+
+    document.querySelector("textarea").value = "";
+
+    loadJournal();  // 🔥 THIS WAS MISSING
+
+    setTimeout(() => {
+      status.innerText = "";
+    }, 2000);
+  });
+}
+
+function loadMoodStats() {
+  fetch('/mood_stats')
+    .then(res => res.json())
+    .then(data => {
+
+      const ctx = document.getElementById('moodChart');
+
+      new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['Sad', 'Neutral', 'Happy', 'Excited'],
+    datasets: [{
+      label: 'Mood Count',
+      data: [
+        data.sad,
+        data.neutral,
+        data.happy,
+        data.excited
+      ],
+      backgroundColor: '#6c63ff'
+    }]
+  },
+  options: {
+    plugins: {
+      legend: {
+        labels: {
+          color: '#ffffff'
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: '#ffffff'
+        }
+      },
+      y: {
+        ticks: {
+          color: '#ffffff'
+        }
+      }
+    }
+  }
+});
+    });
+}
+
+function typeText(element, text, speed = 20) {
+  element.innerHTML = "";
+  let i = 0;
+
+  function typing() {
+    if (i < text.length) {
+      element.innerHTML += text.charAt(i);
+      i++;
+      setTimeout(typing, speed);
+    }
+  }
+
+  typing();
+}
+
+function loadInsight() {
+  fetch('/mood_insight')
+    .then(res => res.json())
+    .then(data => {
+      const el = document.getElementById("moodInsight");
+
+      setTimeout(() => {
+        typeText(el, data.insight);
+      }, 300);
+    });
+}
+
+function deleteEntry(id) {
+  fetch('/delete_journal', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ id: id })
+  })
+  .then(res => res.json())
+  .then(() => {
+    loadJournal(); // refresh UI
+  });
+}
+
+function loadSummary() {
+  const box = document.getElementById("aiSummary");
+
+  box.innerHTML = `<p style="opacity:0.6">🤖 Thinking...</p>`;
+
+  fetch('/journal_summary')
+    .then(res => res.json())
+    .then(data => {
+      setTimeout(() => {
+        box.innerHTML = `
+          <div class="ai-section">
+            <p><strong>🧠 Emotion:</strong> ${data.emotion}</p>
+            <p><strong>📈 Trend:</strong> ${data.trend}</p>
+            <p><strong>📝 Summary:</strong><br>${data.summary}</p>
+          </div>
+        `;
+      }, 600); // 🔥 slight delay = feels intelligent
+    });
+}
+// ❌ Removed fake AI logic — now handled by backend
+window.onload = () => {
+  loadJournal();
+  loadMoodStats();
+  loadInsight();
+  loadSummary();   // 🔥 THIS WAS MISSING
+};
+</script>
+
+</body>
+</html>

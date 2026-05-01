@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome - MindMate</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="welcome-body">
+
+  <div class="welcome-container">
+    <div class="welcome-message">
+      Welcome to your personal space
+    </div>
+    <button class="get-started-btn">Get Started</button>
+  </div>
+
+  <!-- Login Popup -->
+  <div class="popup-overlay" id="login-popup">
+    <div class="popup-box">
+      <button class="close-btn" onclick="togglePopup('login-popup')">×</button>
+      <h2>Login to MindMate</h2>
+      <form method="POST" action="/login">
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+      </form>
+      <p>Don't have an account? <a href="#" onclick="switchPopup('login-popup', 'register-popup')">Register here</a></p>
+    </div>
+  </div>
+
+  <!-- Register Popup -->
+  <div class="popup-overlay" id="register-popup">
+    <div class="popup-box">
+      <button class="close-btn" onclick="togglePopup('register-popup')">×</button>
+      <h2>Create Your Account</h2>
+      <form method="POST" action="/register">
+        <input type="text" name="name" placeholder="Full Name" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Register</button>
+      </form>
+      <p>Already have an account? <a href="#" onclick="switchPopup('register-popup', 'login-popup')">Login here</a></p>
+    </div>
+  </div>
+
+  <footer class="footer">
+    © 2025 MindMate — Your Personal Mental Wellness Space
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    function togglePopup(id) {
+      const popup = document.getElementById(id);
+      popup.style.display = popup.style.display === "flex" ? "none" : "flex";
+    }
+
+    function switchPopup(hideId, showId) {
+      document.getElementById(hideId).style.display = "none";
+      document.getElementById(showId).style.display = "flex";
+    }
+
+    document.querySelector(".get-started-btn").addEventListener("click", function (e) {
+      e.preventDefault();
+      togglePopup("login-popup");
+    });
+  </script>
+
+</body>
+</html>

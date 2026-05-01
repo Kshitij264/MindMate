@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mental Health Facts</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body class="facts-body">
+
+  <a href="{{ url_for('menu') }}" class="back-btn">← Back</a>
+
+  <div class="facts-container">
+    <h1>🧠 Mental Health Facts</h1>
+    <div class="daily-fact">
+  <h2>🌟 Fact of the Day</h2>
+  <p id="dailyFactText">Loading...</p>
+</div>
+<div class="recommended-section">
+  <h2>🤖 Recommended For You</h2>
+  <div id="recommendedFacts"></div>
+</div>
+    <!-- Category Filters -->
+    <div class="filters">
+      <button onclick="filterFacts('all', event)">All</button>
+      <button onclick="filterFacts('stress')">Stress</button>
+      <button onclick="filterFacts('anxiety')">Anxiety</button>
+      <button onclick="filterFacts('sleep')">Sleep</button>
+      <button onclick="filterFacts('selfcare')">Self Care</button>
+    </div>
+    <div class="saved-section">
+  <h2>⭐ Saved Facts</h2>
+  <div id="savedFacts"></div>
+</div>
+    <!-- Facts Grid -->
+    <div class="facts-grid" id="factsGrid">
+      
+      <!-- Fact Card -->
+      <div class="fact-card" data-category="stress">
+        <h3>Deep breathing reduces stress</h3>
+        <p>It activates your parasympathetic nervous system, calming your body.</p>
+        <div class="fact-actions">
+    <button onclick="explainFact(this)">Explain More</button>
+    <button onclick="saveFact(this)">⭐ Save</button>
+  </div>
+
+  <div class="extra-text"></div>
+      </div>
+
+      <div class="fact-card" data-category="anxiety">
+        <h3>Exercise lowers anxiety</h3>
+        <p>Regular physical activity can reduce anxiety by up to 40%.</p>
+        <div class="fact-actions">
+    <button onclick="explainFact(this)">Explain More</button>
+    <button onclick="saveFact(this)">⭐ Save</button>
+  </div>
+
+  <div class="extra-text"></div>
+      </div>
+
+      <div class="fact-card" data-category="sleep">
+        <h3>Sleep affects mood</h3>
+        <p>Poor sleep increases emotional instability and stress levels.</p>
+        <div class="fact-actions">
+    <button onclick="explainFact(this)">Explain More</button>
+    <button onclick="saveFact(this)">⭐ Save</button>
+  </div>
+
+  <div class="extra-text"></div>
+      </div>
+
+      <div class="fact-card" data-category="selfcare">
+        <h3>Journaling helps clarity</h3>
+        <p>Writing thoughts improves emotional processing and reduces overthinking.</p>
+        <div class="fact-actions">
+    <button onclick="explainFact(this)">Explain More</button>
+    <button onclick="saveFact(this)">⭐ Save</button>
+  </div>
+
+  <div class="extra-text"></div>
+      </div>
+
+      <div class="fact-card" data-category="stress">
+        <h3>Nature reduces stress</h3>
+        <p>Spending time outdoors lowers cortisol levels significantly.</p>
+        <div class="fact-actions">
+    <button onclick="explainFact(this)">Explain More</button>
+    <button onclick="saveFact(this)">⭐ Save</button>
+  </div>
+
+  <div class="extra-text"></div>
+      </div>
+
+      <div class="fact-card" data-category="anxiety">
+        <h3>Limiting caffeine helps</h3>
+        <p>Too much caffeine can trigger anxiety and panic attacks.</p>
+        <div class="fact-actions">
+    <button onclick="explainFact(this)">Explain More</button>
+    <button onclick="saveFact(this)">⭐ Save</button>
+  </div>
+
+  <div class="extra-text"></div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+function filterFacts(category, event) {
+  document.querySelectorAll(".filters button").forEach(btn => {
+  btn.classList.remove("active");
+});
+
+event.target.classList.add("active");
+  const cards = document.querySelectorAll(".fact-card");
+
+  cards.forEach(card => {
+    if (category === "all" || card.dataset.category === category) {
+      card.style.display = "block";
+    } else {
+      card.style.display = "none";
+    }
+  });
+}
+async function explainFact(button) {
+  const card = button.closest(".fact-card");
+  const extraDiv = card.querySelector(".extra-text");
+  const factText = card.querySelector("h3").innerText;
+ // ✅ TOGGLE CLOSE FIRST
+if (extraDiv.innerText !== "") {
+  extraDiv.innerText = "";
+  extraDiv.classList.remove("show");
+  button.innerText = "Explain More";
+  button.disabled = false;
+  return;
+}
+
+// ✅ THEN SHOW THINKING
+extraDiv.innerText = "Thinking...";
+extraDiv.classList.add("show");
+button.innerText = "Close";
+button.disabled = true;
+
+  extraDiv.innerText = "Thinking...";
+extraDiv.classList.add("show");   // 👈 ensure visible immediately
+button.innerText = "Close";
+
+try {
+  const res = await fetch("/explain-fact", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ fact: factText })
+  });
+
+  const data = await res.json();
+
+  extraDiv.innerText = data.explanation || "Couldn't generate explanation.";
+} catch (err) {
+  extraDiv.innerText = "⚠️ Error generating explanation. Try again.";
+}
+
+button.disabled = false;
+  
+}
+async function saveFact(button) {
+  const card = button.closest(".fact-card");
+  const title = card.querySelector("h3").innerText;
+
+  // ✅ IF ALREADY SAVED → REMOVE
+  if (button.innerText.includes("Saved")) {
+
+    await fetch("/remove-fact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ fact: title })
+    });
+
+    button.innerText = "⭐ Save";
+    button.style.background = "#6c63ff";
+
+  } else {
+
+    await fetch("/save-fact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ fact: title })
+    });
+
+    button.innerText = "Saved ✓";
+    button.style.background = "#4CAF50";
+  }
+
+  loadSavedFacts(); // refresh UI
+}
+async function loadSavedFacts() {
+  const res = await fetch("/get-saved-facts");
+  const facts = await res.json();
+
+  const container = document.getElementById("savedFacts");
+  container.innerHTML = "";
+
+  facts.forEach(fact => {
+
+    // 🔥 Create removable item
+    const item = document.createElement("div");
+    item.className = "saved-item";
+    item.innerHTML = `
+      ${fact}
+      <span onclick="removeFromSaved('${fact}')" style="margin-left:10px; cursor:pointer;">❌</span>
+    `;
+
+    container.appendChild(item);
+
+    // sync buttons
+    const cards = document.querySelectorAll(".fact-card");
+
+    cards.forEach(card => {
+      const title = card.querySelector("h3").innerText;
+      const btn = card.querySelector("button:last-child");
+
+      if (title === fact) {
+        btn.innerText = "Saved ✓";
+        btn.style.background = "#4CAF50";
+      }
+    });
+
+  });
+}
+async function removeFromSaved(fact) {
+  await fetch("/remove-fact", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ fact: fact })
+  });
+
+  // 🔥 RESET BUTTON STATE IN CARDS
+  const cards = document.querySelectorAll(".fact-card");
+
+  cards.forEach(card => {
+    const title = card.querySelector("h3").innerText;
+    const btn = card.querySelector("button:last-child");
+
+    if (title === fact) {
+      btn.innerText = "⭐ Save";
+      btn.style.background = "#6c63ff";
+    }
+  });
+
+  loadSavedFacts();
+}
+window.onload = function () {
+  loadSavedFacts();
+};
+async function loadDailyFact() {
+  const res = await fetch("/fact-of-the-day");
+  const data = await res.json();
+
+  document.getElementById("dailyFactText").innerText = data.fact;
+}
+
+async function loadRecommendedFacts() {
+  const res = await fetch("/recommended-facts");
+  const facts = await res.json();
+
+  const container = document.getElementById("recommendedFacts");
+  container.innerHTML = "";
+
+  facts.forEach(fact => {
+    const div = document.createElement("div");
+    div.className = "recommend-item";
+    div.innerText = fact;
+    container.appendChild(div);
+  });
+}
+
+window.addEventListener("load", () => {
+  loadDailyFact();
+  loadSavedFacts();
+  loadRecommendedFacts();  // ✅ ADD THIS
+});
+</script>
+
+</body>
+</html>
